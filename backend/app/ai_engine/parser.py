@@ -42,27 +42,67 @@ def extract_phone(text: str) -> str:
     return match.group(0) if match else ""
 
 def extract_linkedin(text: str) -> str:
-    """Extract LinkedIn profile URL from resume text"""
-    linkedin_regex = r'(?:https?://)?(?:www\.)?linkedin\.com/in/[\w\-]+'
-    match = re.search(linkedin_regex, text, re.IGNORECASE)
-    if match:
-        url = match.group(0)
-        # Ensure it has https://
-        if not url.startswith('http'):
-            url = 'https://' + url
-        return url
+    """Extract LinkedIn profile URL from resume text - handles multiple formats"""
+    # Try multiple regex patterns for different LinkedIn URL formats
+    patterns = [
+        # Standard format with in/username
+        r'(?:https?://)?(?:www\.)?linkedin\.com/in/[\w\-]+/?',
+        # Alternative: just the username pattern
+        r'linkedin\.com/in/([\w\-]+)',
+        # LinkedIn with /profile
+        r'(?:https?://)?(?:www\.)?linkedin\.com/company/[\w\-]+/?',
+        # Just linkedin/username without .com
+        r'linkedin/in/([\w\-]+)',
+        # Shortened formats
+        r'linkedin\.com/([\w\-]+)',
+        # Search for URLs in general (linkedin mentions)
+        r'(?:https?://)?linkedin\.com[^\s]+'
+    ]
+    
+    for pattern in patterns:
+        match = re.search(pattern, text, re.IGNORECASE)
+        if match:
+            url = match.group(0)
+            # Clean up the URL
+            if 'linkedin' in url.lower():
+                # Ensure it has https://
+                if not url.lower().startswith('http'):
+                    url = 'https://' + url
+                # Remove any trailing slashes or special chars
+                url = url.rstrip('/')
+                if url.endswith(')'):
+                    url = url[:-1]
+                return url
+    
     return ""
 
 def extract_github(text: str) -> str:
-    """Extract GitHub profile URL from resume text"""
-    github_regex = r'(?:https?://)?(?:www\.)?github\.com/[\w\-]+'
-    match = re.search(github_regex, text, re.IGNORECASE)
-    if match:
-        url = match.group(0)
-        # Ensure it has https://
-        if not url.startswith('http'):
-            url = 'https://' + url
-        return url
+    """Extract GitHub profile URL from resume text - handles multiple formats"""
+    # Try multiple patterns
+    patterns = [
+        # Standard github.com/username format
+        r'(?:https?://)?(?:www\.)?github\.com/([\w\-]+)(?:/[\w\-]*)?',
+        # Just github.com/username
+        r'github\.com/([\w\-]+)',
+        # Full URLs
+        r'(?:https?://)?github\.com[^\s]+'
+    ]
+    
+    for pattern in patterns:
+        match = re.search(pattern, text, re.IGNORECASE)
+        if match:
+            url = match.group(0)
+            # Clean up the URL
+            if 'github' in url.lower():
+                # Ensure it has https://
+                if not url.lower().startswith('http'):
+                    url = 'https://' + url
+                # Remove trailing slashes or special chars
+                url = url.rstrip('/')
+                if url.endswith(')'):
+                    url = url[:-1]
+                return url
+    
     return ""
 
 def extract_name(text: str) -> str:
@@ -112,12 +152,19 @@ def parse_resume(text: str) -> Dict[str, Any]:
     Main entry point for parsing raw resume text into structured JSON.
     Works with or without spaCy model.
     """
+    linkedin = extract_linkedin(text)
+    github = extract_github(text)
+    
+    # Debug logging
+    print(f"[Parser] LinkedIn extracted: {'YES' if linkedin else 'NO'} - {linkedin}")
+    print(f"[Parser] GitHub extracted: {'YES' if github else 'NO'} - {github}")
+    
     return {
         "name": extract_name(text),
         "email": extract_email(text),
         "phone": extract_phone(text),
-        "linkedin": extract_linkedin(text),
-        "github": extract_github(text),
+        "linkedin": linkedin,
+        "github": github,
         "skills": extract_skills(text),
         "raw_text_length": len(text)
     }

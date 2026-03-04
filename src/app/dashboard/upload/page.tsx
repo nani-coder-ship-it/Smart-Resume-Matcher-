@@ -264,11 +264,11 @@ export default function UploadPage() {
                             <h3 className="text-lg font-bold mb-6">Resume Details</h3>
                             
                             {/* Social Media Links */}
-                            {(resumeDetail.parsed_data?.linkedin || resumeDetail.parsed_data?.github) && (
+                            {(resumeDetail.parsed_data?.linkedin?.trim() || resumeDetail.parsed_data?.github?.trim()) && (
                                 <div className="mb-8 pb-8 border-b border-white/10">
                                     <p className="text-sm font-semibold text-gray-300 mb-4 uppercase tracking-wide">📱 Connect with me</p>
                                     <div className="flex flex-wrap gap-4">
-                                        {resumeDetail.parsed_data?.linkedin && (
+                                        {resumeDetail.parsed_data?.linkedin?.trim() && (
                                             <a
                                                 href={resumeDetail.parsed_data.linkedin}
                                                 target="_blank"
@@ -280,7 +280,7 @@ export default function UploadPage() {
                                                 <span className="font-medium text-sm">LinkedIn</span>
                                             </a>
                                         )}
-                                        {resumeDetail.parsed_data?.github && (
+                                        {resumeDetail.parsed_data?.github?.trim() && (
                                             <a
                                                 href={resumeDetail.parsed_data.github}
                                                 target="_blank"

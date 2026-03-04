@@ -1,6 +1,7 @@
 import PyPDF2
 from docx import Document
 import io
+import re
 
 def extract_text_from_pdf(file_path: str) -> str:
     text = ""
@@ -11,6 +12,18 @@ def extract_text_from_pdf(file_path: str) -> str:
                 extracted = page.extract_text()
                 if extracted:
                     text += extracted + "\n"
+            
+            # Also try to extract URLs from PDF annotations/links
+            for page in reader.pages:
+                if "/Annots" in page:
+                    for annot in page["/Annots"]:
+                        obj = annot.get_object()
+                        if obj["/Subtype"] == "/Link":
+                            if "/A" in obj:
+                                link_obj = obj["/A"]
+                                if "/URI" in link_obj:
+                                    uri = link_obj["/URI"]
+                                    text += "\n" + uri
     except Exception as e:
         print(f"Error reading PDF {file_path}: {e}")
     return text
