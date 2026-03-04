@@ -63,7 +63,7 @@ export default function ResumeImproveAndDownloadPage() {
         setResult(null);
 
         try {
-            const res = await api.post("/api/v1/resume-improve/optimize", {
+            const res = await api.post("/resume-improve/optimize", {
                 resume_id: selectedResumeId,
                 job_description: jobDescription,
                 job_title: jobTitle,
