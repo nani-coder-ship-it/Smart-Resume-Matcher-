@@ -1,0 +1,76 @@
+@import "tailwindcss";
+
+@plugin "tailwindcss-animate";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme {
+  --font-sans: var(--font-inter);
+
+  --color-background: #030014;
+  --color-foreground: #ffffff;
+
+  --color-primary: #8b5cf6; /* Violet 500 */
+  --color-primary-foreground: #ffffff;
+  
+  --color-secondary: #0ea5e9; /* Sky 500 */
+  --color-secondary-foreground: #ffffff;
+
+  --color-card: rgba(255, 255, 255, 0.05);
+  --color-card-foreground: #ffffff;
+  --color-border: rgba(255, 255, 255, 0.1);
+
+  --shadow-glow: 0 0 20px rgba(139, 92, 246, 0.3);
+  --shadow-glow-hover: 0 0 30px rgba(139, 92, 246, 0.5);
+  --shadow-float: 0 10px 40px -10px rgba(0,0,0,0.5);
+}
+
+/* Base styles enforcing dark mode and deep space gradient */
+@layer base {
+  :root {
+    --background: #030014;
+    --foreground: #ffffff;
+  }
+  
+  body {
+    background-color: var(--background);
+    background-image: radial-gradient(circle at top center, rgba(30,20,80,1) 0%, rgba(3,0,20,1) 100%);
+    color: var(--foreground);
+    @apply antialiased min-h-screen selection:bg-primary/30;
+  }
+}
+
+/* Custom utilities */
+@layer utilities {
+  .glass {
+    @apply bg-black/40 backdrop-blur-xl border border-white/10;
+  }
+  
+  .text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-violet-400 to-cyan-400;
+  }
+}
+
+/* Fix for select dropdowns and form inputs in dark mode */
+@layer components {
+  /* Dark mode select styling */
+  select {
+    color-scheme: dark;
+  }
+
+  select option {
+    background-color: #1a1a2e;
+    color: #ffffff;
+  }
+
+  /* Input focus states with better visibility */
+  input:focus, textarea:focus, select:focus {
+    background-color: rgba(139, 92, 246, 0.1);
+    border-color: rgb(139, 92, 246);
+  }
+
+  /* Placeholder text styling */
+  input::placeholder, textarea::placeholder {
+    color: rgba(156, 163, 175, 0.7);
+  }
+}
