@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
-from app.routes import auth, resume, job, dashboard
+from app.routes import auth, resume, job, dashboard, improve
 from app.database.session import engine, Base
 
 # Important: This initializes all the defined models in the database automatically
@@ -29,6 +29,7 @@ app.include_router(auth.router, prefix=f"{settings.API_V1_STR}/auth", tags=["aut
 app.include_router(resume.router, prefix=f"{settings.API_V1_STR}/resume", tags=["resume"])
 app.include_router(job.router, prefix=f"{settings.API_V1_STR}/job", tags=["job match"])
 app.include_router(dashboard.router, prefix=f"{settings.API_V1_STR}/dashboard", tags=["dashboard analytics"])
+app.include_router(improve.router, tags=["resume-improvement"])
 
 @app.get("/")
 def root():

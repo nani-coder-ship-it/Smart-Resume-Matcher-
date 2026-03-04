@@ -81,10 +81,16 @@ export function Navbar() {
                         <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary transition-all duration-300 group-hover:w-full" />
                     </button>
                     {user && (
-                        <Link href="/dashboard" className="text-sm font-medium text-gray-300 hover:text-white transition-colors relative group">
-                            Dashboard
-                            <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary transition-all duration-300 group-hover:w-full" />
-                        </Link>
+                        <>
+                            <Link href="/dashboard" className="text-sm font-medium text-gray-300 hover:text-white transition-colors relative group">
+                                Dashboard
+                                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary transition-all duration-300 group-hover:w-full" />
+                            </Link>
+                            <Link href="/dashboard/improve" className="text-sm font-medium text-gray-300 hover:text-white transition-colors relative group">
+                                Improve Resume
+                                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary transition-all duration-300 group-hover:w-full" />
+                            </Link>
+                        </>
                     )}
                 </div>
 
