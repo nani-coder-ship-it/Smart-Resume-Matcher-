@@ -41,6 +41,30 @@ def extract_phone(text: str) -> str:
     match = re.search(phone_regex, text)
     return match.group(0) if match else ""
 
+def extract_linkedin(text: str) -> str:
+    """Extract LinkedIn profile URL from resume text"""
+    linkedin_regex = r'(?:https?://)?(?:www\.)?linkedin\.com/in/[\w\-]+'
+    match = re.search(linkedin_regex, text, re.IGNORECASE)
+    if match:
+        url = match.group(0)
+        # Ensure it has https://
+        if not url.startswith('http'):
+            url = 'https://' + url
+        return url
+    return ""
+
+def extract_github(text: str) -> str:
+    """Extract GitHub profile URL from resume text"""
+    github_regex = r'(?:https?://)?(?:www\.)?github\.com/[\w\-]+'
+    match = re.search(github_regex, text, re.IGNORECASE)
+    if match:
+        url = match.group(0)
+        # Ensure it has https://
+        if not url.startswith('http'):
+            url = 'https://' + url
+        return url
+    return ""
+
 def extract_name(text: str) -> str:
     """Extract name from resume - try spaCy first, fallback to simple heuristic"""
     try:
@@ -92,6 +116,8 @@ def parse_resume(text: str) -> Dict[str, Any]:
         "name": extract_name(text),
         "email": extract_email(text),
         "phone": extract_phone(text),
+        "linkedin": extract_linkedin(text),
+        "github": extract_github(text),
         "skills": extract_skills(text),
         "raw_text_length": len(text)
     }

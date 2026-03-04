@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import api from "@/lib/api";
-import { UploadCloud, File, CheckCircle2, AlertCircle, Loader } from "lucide-react";
+import { UploadCloud, File, CheckCircle2, AlertCircle, Loader, Linkedin, Github } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { GlowingCard } from "@/components/ui/GlowingCard";
 
@@ -43,6 +43,11 @@ export default function UploadPage() {
             const response = await api.get(`/resume/${resumeId}`);
             console.log("Resume details fetched:", response.data);
             setResumeDetail(response.data);
+
+            // Scroll to results
+            setTimeout(() => {
+                document.querySelector('[data-results-section]')?.scrollIntoView({ behavior: 'smooth' });
+            }, 100);
 
             if (response.data.status === "completed") {
                 setProcessing(false);
@@ -206,7 +211,7 @@ export default function UploadPage() {
 
             {/* Resume Details After Upload */}
             {resumeDetail && (
-                <div className="space-y-6">
+                <div className="space-y-6" data-results-section>
                     <h2 className="text-2xl font-bold">Analysis Results</h2>
 
                     {processing && (
@@ -256,10 +261,44 @@ export default function UploadPage() {
                     {/* Resume Details */}
                     {resumeDetail.parsed_data && Object.keys(resumeDetail.parsed_data).length > 0 && (
                         <GlowingCard className="p-8">
-                            <h3 className="text-lg font-bold mb-4">Resume Details</h3>
+                            <h3 className="text-lg font-bold mb-6">Resume Details</h3>
+                            
+                            {/* Social Media Links */}
+                            {(resumeDetail.parsed_data?.linkedin || resumeDetail.parsed_data?.github) && (
+                                <div className="mb-8 pb-8 border-b border-white/10">
+                                    <p className="text-sm font-semibold text-gray-300 mb-4 uppercase tracking-wide">📱 Connect with me</p>
+                                    <div className="flex flex-wrap gap-4">
+                                        {resumeDetail.parsed_data?.linkedin && (
+                                            <a
+                                                href={resumeDetail.parsed_data.linkedin}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="flex items-center gap-3 px-5 py-3 rounded-lg bg-gradient-to-r from-blue-600/30 to-blue-600/10 text-blue-300 hover:from-blue-600/50 hover:to-blue-600/30 transition-all border border-blue-600/40 hover:border-blue-600/70 shadow-lg hover:shadow-blue-500/20"
+                                                title="Visit LinkedIn Profile"
+                                            >
+                                                <Linkedin className="w-5 h-5" />
+                                                <span className="font-medium text-sm">LinkedIn</span>
+                                            </a>
+                                        )}
+                                        {resumeDetail.parsed_data?.github && (
+                                            <a
+                                                href={resumeDetail.parsed_data.github}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="flex items-center gap-3 px-5 py-3 rounded-lg bg-gradient-to-r from-gray-600/30 to-gray-600/10 text-gray-300 hover:from-gray-600/50 hover:to-gray-600/30 transition-all border border-gray-600/40 hover:border-gray-600/70 shadow-lg hover:shadow-gray-500/20"
+                                                title="Visit GitHub Profile"
+                                            >
+                                                <Github className="w-5 h-5" />
+                                                <span className="font-medium text-sm">GitHub</span>
+                                            </a>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+
                             <div className="space-y-3 text-sm text-gray-300">
                                 {Object.entries(resumeDetail.parsed_data).map(([key, value]: [string, any]) => {
-                                    if (key === "skills" || !value) return null;
+                                    if (key === "skills" || key === "linkedin" || key === "github" || !value) return null;
                                     return (
                                         <div key={key} className="flex justify-between">
                                             <span className="text-gray-400 capitalize">{key}:</span>
@@ -288,12 +327,16 @@ export default function UploadPage() {
 
                     <div className="grid gap-4">
                         {resumeHistory.map((resume) => (
-                            <GlowingCard key={resume.id} className="p-6 bg-white/5">
+                            <GlowingCard 
+                                key={resume.id} 
+                                className="p-6 bg-white/5 cursor-pointer hover:bg-white/10 transition-all"
+                                onClick={() => fetchResumeDetails(resume.id)}
+                            >
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-4 flex-1">
                                         <File className="w-6 h-6 text-primary" />
                                         <div className="flex-1">
-                                            <h4 className="font-semibold text-white">{resume.filename}</h4>
+                                            <h4 className="font-semibold text-white hover:text-primary transition-colors">{resume.filename}</h4>
                                             <p className="text-sm text-gray-400">
                                                 {new Date(resume.created_at).toLocaleDateString()} {new Date(resume.created_at).toLocaleTimeString()}
                                             </p>
