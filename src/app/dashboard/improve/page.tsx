@@ -18,6 +18,7 @@ interface ImproveResult {
     missing_skills: string[];
     suggestions: string[];
     optimized_resume: string;
+    optimized_resume_pdf: string;
     comparison: {
         keyword_density: number;
         matching_count: number;
@@ -77,23 +78,49 @@ export default function ResumeImproveAndDownloadPage() {
     };
 
     const downloadOptimizedResume = async () => {
-        if (!result) return;
+        if (!result || !selectedResumeId) return;
 
         setDownloading(true);
         try {
-            // Create blob with optimized resume content
-            const content = result.optimized_resume;
-            const blob = new Blob([content], { type: "text/plain" });
+            // Download PDF using the dedicated endpoint
+            const response = await api.post(
+                "/resume-improve/download-pdf",
+                {
+                    resume_id: selectedResumeId,
+                    job_description: jobDescription,
+                    job_title: jobTitle,
+                },
+                { responseType: "blob" }
+            );
+            
+            // Create blob and download
+            const blob = new Blob([response.data], { type: "application/pdf" });
             const url = window.URL.createObjectURL(blob);
-            const a = document.createElement("a");
-            a.href = url;
-            a.download = `optimized-resume-${Date.now()}.txt`;
-            document.body.appendChild(a);
-            a.click();
+            const link = document.createElement("a");
+            link.href = url;
+            link.download = `optimized-resume-${selectedResumeId}-${Date.now()}.pdf`;
+            document.body.appendChild(link);
+            link.click();
             window.URL.revokeObjectURL(url);
-            document.body.removeChild(a);
+            document.body.removeChild(link);
         } catch (err) {
-            console.error("Download failed:", err);
+            console.error("PDF download failed:", err);
+            setError("Failed to download PDF. Trying text format...");
+            // Fallback to text download
+            try {
+                const content = result.optimized_resume;
+                const blob = new Blob([content], { type: "text/plain" });
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = `optimized-resume-${Date.now()}.txt`;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+            } catch (fallbackErr) {
+                console.error("Fallback download also failed:", fallbackErr);
+            }
         } finally {
             setDownloading(false);
         }

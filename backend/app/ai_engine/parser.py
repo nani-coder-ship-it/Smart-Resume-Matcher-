@@ -166,5 +166,6 @@ def parse_resume(text: str) -> Dict[str, Any]:
         "linkedin": linkedin,
         "github": github,
         "skills": extract_skills(text),
+        "raw_text": text,  # Store the full text for enhancement
         "raw_text_length": len(text)
     }

@@ -18,3 +18,5 @@ python-docx==1.1.0
 # Optional Async Background (Redis / Celery)
 celery==5.3.6
 redis==5.0.3
+# PDF Generation
+reportlab==4.0.4
