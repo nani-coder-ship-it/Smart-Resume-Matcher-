@@ -78,49 +78,31 @@ export default function ResumeImproveAndDownloadPage() {
     };
 
     const downloadOptimizedResume = async () => {
-        if (!result || !selectedResumeId) return;
+        if (!result) return;
 
         setDownloading(true);
         try {
-            // Download PDF using the dedicated endpoint
-            const response = await api.post(
-                "/resume-improve/download-pdf",
-                {
-                    resume_id: selectedResumeId,
-                    job_description: jobDescription,
-                    job_title: jobTitle,
-                },
-                { responseType: "blob" }
-            );
+            const content = result.optimized_resume;
             
-            // Create blob and download
-            const blob = new Blob([response.data], { type: "application/pdf" });
+            if (!content || content.trim() === "") {
+                setError("No optimized resume content available");
+                setDownloading(false);
+                return;
+            }
+
+            // Create text file
+            const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
             const url = window.URL.createObjectURL(blob);
             const link = document.createElement("a");
             link.href = url;
-            link.download = `optimized-resume-${selectedResumeId}-${Date.now()}.pdf`;
+            link.download = `optimized-resume-${Date.now()}.txt`;
             document.body.appendChild(link);
             link.click();
             window.URL.revokeObjectURL(url);
             document.body.removeChild(link);
         } catch (err) {
-            console.error("PDF download failed:", err);
-            setError("Failed to download PDF. Trying text format...");
-            // Fallback to text download
-            try {
-                const content = result.optimized_resume;
-                const blob = new Blob([content], { type: "text/plain" });
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement("a");
-                a.href = url;
-                a.download = `optimized-resume-${Date.now()}.txt`;
-                document.body.appendChild(a);
-                a.click();
-                window.URL.revokeObjectURL(url);
-                document.body.removeChild(a);
-            } catch (fallbackErr) {
-                console.error("Fallback download also failed:", fallbackErr);
-            }
+            console.error("Download failed:", err);
+            setError("Failed to download resume");
         } finally {
             setDownloading(false);
         }

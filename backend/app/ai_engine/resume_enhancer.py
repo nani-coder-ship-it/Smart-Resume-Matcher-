@@ -225,15 +225,16 @@ def optimize_resume(parsed_resume_data: Dict[str, Any], job_description: str) ->
     # Enhance the actual resume text
     original_text = resume_data.get("raw_text", "")
     
-    if original_text:
+    if original_text and original_text.strip():
+        # If we have raw text, enhance it
         enhanced_text = enhance_resume_text(
             original_text,
             comparison["missing_skills"],
             job_info.get("tech_keywords", [])
         )
     else:
-        # Fallback if no raw text
-        enhanced_text = resume_data.get("raw_text", "No resume text available")
+        # Generate resume from extracted data
+        enhanced_text = generate_resume_from_extracted_data(resume_data, comparison["missing_skills"])
     
     # Generate suggestions
     suggestions = generate_improvement_suggestions(comparison)
@@ -260,3 +261,53 @@ def optimize_resume(parsed_resume_data: Dict[str, Any], job_description: str) ->
             "missing_count": comparison["missing_count"]
         }
     }
+
+def generate_resume_from_extracted_data(resume_data: Dict[str, Any], missing_skills: List[str]) -> str:
+    """Generate a resume from extracted structured data"""
+    
+    name = resume_data.get("name", "Professional")
+    email = resume_data.get("email", "")
+    phone = resume_data.get("phone", "")
+    linkedin = resume_data.get("linkedin", "")
+    github = resume_data.get("github", "")
+    skills = resume_data.get("skills", [])
+    
+    # Combine all skills including missing ones
+    all_skills = list(set(skills + missing_skills))
+    
+    resume_content = f"""# {name}
+
+## Contact Information
+Email: {email}
+Phone: {phone}
+LinkedIn: {linkedin}
+GitHub: {github}
+
+## Professional Summary
+Dedicated professional with strong technical expertise and a proven track record of delivering impactful solutions. Skilled in problem-solving, collaboration, and leveraging latest technologies to drive business success.
+
+## Technical Skills
+{', '.join(all_skills[:15]) if all_skills else 'Technical skills not available'}
+
+## Core Competencies
+- Software Development
+- Technical Problem Solving
+- Team Collaboration
+- Project Management
+- Quality Assurance
+
+## Experience
+[Your professional experience details with quantifiable achievements and measurable impact]
+
+## Education
+[Your educational background and certifications]
+
+## Additional Information
+- Languages: [List any languages]
+- Certifications: [Professional certifications if any]
+
+---
+*Resume enhanced with AI Resume Improvement Tool - {', '.join(missing_skills[:3]) if missing_skills else 'optimization complete'}*
+"""
+    return resume_content
+
