@@ -1,5 +1,5 @@
 import re
-from typing import Dict, List, Any, Tuple
+from typing import Dict, List, Any, Tuple, Optional
 from collections import Counter
 from io import BytesIO
 from reportlab.lib.pagesizes import letter
@@ -212,8 +212,10 @@ def generate_pdf_from_text(text: str, title: str = "Optimized Resume") -> BytesI
     buffer.seek(0)
     return buffer
 
-def optimize_resume(parsed_resume_data: Dict[str, Any], job_description: str) -> Dict[str, Any]:
+def optimize_resume(parsed_resume_data: Dict[str, Any], job_description: str, file_path: Optional[str] = None) -> Dict[str, Any]:
     """Main function to optimize resume"""
+    from app.ai_engine.pdf_enhancer import enhance_with_original_pdf
+    import base64
     
     # Extract data
     resume_data = extract_resume_data(parsed_resume_data)
@@ -239,14 +241,20 @@ def optimize_resume(parsed_resume_data: Dict[str, Any], job_description: str) ->
     # Generate suggestions
     suggestions = generate_improvement_suggestions(comparison)
     
-    # Generate PDF
-    pdf_buffer = generate_pdf_from_text(enhanced_text, "Optimized Resume")
-    pdf_base64 = ""
+    # Generate PDF (merge with original if available)
     try:
-        import base64
+        pdf_buffer = enhance_with_original_pdf(
+            file_path,
+            comparison["missing_skills"],
+            comparison["matching_skills"],
+            suggestions,
+            comparison["ats_score"],
+            enhanced_text
+        )
         pdf_base64 = base64.b64encode(pdf_buffer.getvalue()).decode('utf-8')
     except Exception as e:
-        print(f"PDF generation warning: {e}")
+        print(f"PDF generation error: {e}")
+        pdf_base64 = ""
     
     return {
         "ats_score": comparison["ats_score"],

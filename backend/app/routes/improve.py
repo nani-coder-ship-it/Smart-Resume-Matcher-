@@ -46,8 +46,12 @@ async def improve_resume(request: ResumeImproveRequest, db: Session = Depends(ge
     if not resume.parsed_data:
         raise HTTPException(status_code=400, detail="Resume has not been processed yet")
     
-    # Optimize resume
-    result = optimize_resume(resume.parsed_data, request.job_description)
+    # Optimize resume with file path for PDF processing
+    result = optimize_resume(
+        resume.parsed_data, 
+        request.job_description,
+        file_path=resume.file_path  # Pass the original PDF file path
+    )
     
     return ImprovedResumeResponse(
         ats_score=result["ats_score"],

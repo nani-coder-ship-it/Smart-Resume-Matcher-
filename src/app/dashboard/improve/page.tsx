@@ -82,27 +82,44 @@ export default function ResumeImproveAndDownloadPage() {
 
         setDownloading(true);
         try {
-            const content = result.optimized_resume;
+            // Decode base64 PDF from response
+            const pdfData = result.optimized_resume_pdf;
             
-            if (!content || content.trim() === "") {
-                setError("No optimized resume content available");
-                setDownloading(false);
-                return;
+            if (!pdfData || pdfData.trim() === "") {
+                setError("No PDF available. Downloading as text instead...");
+                // Fallback to text
+                const content = result.optimized_resume;
+                const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
+                const url = window.URL.createObjectURL(blob);
+                const link = document.createElement("a");
+                link.href = url;
+                link.download = `optimized-resume-${Date.now()}.txt`;
+                document.body.appendChild(link);
+                link.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(link);
+            } else {
+                // Convert base64 to blob
+                const binaryString = atob(pdfData);
+                const bytes = new Uint8Array(binaryString.length);
+                for (let i = 0; i < binaryString.length; i++) {
+                    bytes[i] = binaryString.charCodeAt(i);
+                }
+                const blob = new Blob([bytes], { type: "application/pdf" });
+                
+                // Download PDF
+                const url = window.URL.createObjectURL(blob);
+                const link = document.createElement("a");
+                link.href = url;
+                link.download = `optimized-resume-${Date.now()}.pdf`;
+                document.body.appendChild(link);
+                link.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(link);
             }
-
-            // Create text file
-            const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
-            const url = window.URL.createObjectURL(blob);
-            const link = document.createElement("a");
-            link.href = url;
-            link.download = `optimized-resume-${Date.now()}.txt`;
-            document.body.appendChild(link);
-            link.click();
-            window.URL.revokeObjectURL(url);
-            document.body.removeChild(link);
         } catch (err) {
             console.error("Download failed:", err);
-            setError("Failed to download resume");
+            setError("Failed to download resume. Please try again.");
         } finally {
             setDownloading(false);
         }
