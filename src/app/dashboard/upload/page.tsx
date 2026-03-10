@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import api from "@/lib/api";
-import { UploadCloud, File, CheckCircle2, AlertCircle, Loader, Linkedin, Github } from "lucide-react";
+import { UploadCloud, File, CheckCircle2, AlertCircle, Loader, Linkedin, Github, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { GlowingCard } from "@/components/ui/GlowingCard";
 
@@ -90,6 +90,29 @@ export default function UploadPage() {
     useEffect(() => {
         fetchResumeHistory();
     }, []);
+
+    // Delete resume
+    const handleDeleteResume = async (resumeId: number, event: React.MouseEvent) => {
+        event.stopPropagation();
+        
+        if (!confirm("Are you sure you want to delete this resume?")) {
+            return;
+        }
+
+        try {
+            await api.delete(`/resume/${resumeId}`);
+            setResumeHistory(resumeHistory.filter(r => r.id !== resumeId));
+            setError("");
+            setSuccess(false);
+            // Show success feedback
+            setTimeout(() => {
+                fetchResumeHistory();
+            }, 500);
+        } catch (err: any) {
+            console.error("Error deleting resume:", err);
+            setError("Failed to delete resume. Please try again.");
+        }
+    };
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files.length > 0) {
@@ -342,19 +365,28 @@ export default function UploadPage() {
                                             </p>
                                         </div>
                                     </div>
-                                    <div className="text-right">
-                                        <div className="text-3xl font-bold text-primary">
-                                            {resume.ats_score !== null ? `${Math.round(resume.ats_score)}%` : "—"}
+                                    <div className="flex items-center gap-4">
+                                        <div className="text-right">
+                                            <div className="text-3xl font-bold text-primary">
+                                                {resume.ats_score !== null ? `${Math.round(resume.ats_score)}%` : "—"}
+                                            </div>
+                                            <p className="text-xs text-gray-400 mt-1">
+                                                <span className={`px-2 py-1 rounded-full ${
+                                                    resume.status === "completed" ? "bg-emerald-500/20 text-emerald-400" :
+                                                    resume.status === "pending" ? "bg-yellow-500/20 text-yellow-400" :
+                                                    "bg-red-500/20 text-red-400"
+                                                }`}>
+                                                    {resume.status}
+                                                </span>
+                                            </p>
                                         </div>
-                                        <p className="text-xs text-gray-400 mt-1">
-                                            <span className={`px-2 py-1 rounded-full ${
-                                                resume.status === "completed" ? "bg-emerald-500/20 text-emerald-400" :
-                                                resume.status === "pending" ? "bg-yellow-500/20 text-yellow-400" :
-                                                "bg-red-500/20 text-red-400"
-                                            }`}>
-                                                {resume.status}
-                                            </span>
-                                        </p>
+                                        <button
+                                            onClick={(e) => handleDeleteResume(resume.id, e)}
+                                            className="p-2 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 hover:text-red-300 transition-colors"
+                                            title="Delete resume"
+                                        >
+                                            <Trash2 className="w-5 h-5" />
+                                        </button>
                                     </div>
                                 </div>
                             </GlowingCard>

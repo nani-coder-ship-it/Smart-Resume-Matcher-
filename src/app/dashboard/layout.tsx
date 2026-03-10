@@ -4,7 +4,7 @@ import React, { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
-import { LayoutDashboard, Upload, Search, LogOut } from "lucide-react";
+import { LayoutDashboard, Upload, Search, LogOut, FileText } from "lucide-react";
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
     const { user, loading, logout } = useAuth();
@@ -52,6 +52,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                     <Link href="/dashboard/match" className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/5 transition-colors text-gray-300 hover:text-white">
                         <Search size={20} />
                         <span>Job Match</span>
+                    </Link>
+                    <Link href="/dashboard/edit" className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/5 transition-colors text-gray-300 hover:text-white">
+                        <FileText size={20} />
+                        <span>Edit Suggestions</span>
                     </Link>
                 </nav>
 

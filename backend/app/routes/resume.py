@@ -139,3 +139,35 @@ def get_resume_details(
         raise HTTPException(status_code=404, detail="Resume not found")
     
     return resume
+
+@router.delete("/{resume_id}")
+def delete_resume(
+    resume_id: int,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_active_user)
+) -> Any:
+    """
+    Delete a resume file and associated record from the database.
+    Only the owner of the resume can delete it.
+    """
+    # Find the resume
+    resume = db.query(Resume).filter(
+        Resume.id == resume_id,
+        Resume.user_id == current_user.id
+    ).first()
+    
+    if not resume:
+        raise HTTPException(status_code=404, detail="Resume not found")
+    
+    # Delete the physical file if it exists
+    if resume.file_path and os.path.exists(resume.file_path):
+        try:
+            os.remove(resume.file_path)
+        except Exception as e:
+            print(f"Warning: Could not delete file {resume.file_path}: {e}")
+    
+    # Delete the database record
+    db.delete(resume)
+    db.commit()
+    
+    return {"message": "Resume deleted successfully", "resume_id": resume_id}

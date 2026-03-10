@@ -213,44 +213,42 @@ def generate_pdf_from_text(text: str, title: str = "Optimized Resume") -> BytesI
     return buffer
 
 def optimize_resume(parsed_resume_data: Dict[str, Any], job_description: str, file_path: Optional[str] = None) -> Dict[str, Any]:
-    """Main function to optimize resume"""
-    from app.ai_engine.pdf_enhancer import enhance_with_original_pdf
+    """
+    Main function to optimize resume with REAL editing, not template generation.
+    Returns ONLY enhanced resume text in PDF format.
+    """
+    from app.ai_engine.real_resume_enhancer import enhance_resume, extract_job_skills
+    from app.ai_engine.pdf_enhancer import create_pdf_from_text
     import base64
     
     # Extract data
     resume_data = extract_resume_data(parsed_resume_data)
     job_info = extract_job_requirements(job_description)
     
-    # Compare
+    # Compare for analytics
     comparison = compare_resume_to_job(resume_data.get("skills", []), job_info)
     
-    # Enhance the actual resume text
+    # Get the original resume text
     original_text = resume_data.get("raw_text", "")
     
-    if original_text and original_text.strip():
-        # If we have raw text, enhance it
-        enhanced_text = enhance_resume_text(
+    if not original_text or not original_text.strip():
+        # Fallback: generate from extracted data if no raw text
+        enhanced_text = generate_resume_from_extracted_data(resume_data, comparison["missing_skills"])
+    else:
+        # REAL ENHANCEMENT: Edit the actual resume
+        job_skills = extract_job_skills(job_description)
+        enhanced_text = enhance_resume(
             original_text,
             comparison["missing_skills"],
-            job_info.get("tech_keywords", [])
+            job_skills
         )
-    else:
-        # Generate resume from extracted data
-        enhanced_text = generate_resume_from_extracted_data(resume_data, comparison["missing_skills"])
     
-    # Generate suggestions
+    # Generate suggestions for display only (not in PDF)
     suggestions = generate_improvement_suggestions(comparison)
     
-    # Generate PDF (merge with original if available)
+    # Generate PDF from ONLY the enhanced resume (NO analysis section)
     try:
-        pdf_buffer = enhance_with_original_pdf(
-            file_path,
-            comparison["missing_skills"],
-            comparison["matching_skills"],
-            suggestions,
-            comparison["ats_score"],
-            enhanced_text
-        )
+        pdf_buffer = create_pdf_from_text(enhanced_text)  # Just the resume, no analysis
         pdf_base64 = base64.b64encode(pdf_buffer.getvalue()).decode('utf-8')
     except Exception as e:
         print(f"PDF generation error: {e}")
@@ -261,8 +259,9 @@ def optimize_resume(parsed_resume_data: Dict[str, Any], job_description: str, fi
         "matching_skills": comparison["matching_skills"],
         "missing_skills": comparison["missing_skills"],
         "suggestions": suggestions,
-        "optimized_resume": enhanced_text,
-        "optimized_resume_pdf": pdf_base64,
+        "original_resume": original_text,  # Return original for user to edit
+        "optimized_resume": enhanced_text,  # Show AI suggestions
+        "optimized_resume_pdf": pdf_base64,  # PDF of enhanced resume
         "comparison": {
             "keyword_density": comparison["keyword_density"],
             "matching_count": comparison["matching_count"],
