@@ -2,10 +2,15 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import declarative_base, sessionmaker
 from app.core.config import settings
 
+# SQLite requires check_same_thread=False, PostgreSQL doesn't
+connect_args = {}
+if "sqlite" in settings.SQLALCHEMY_DATABASE_URI.lower():
+    connect_args = {"check_same_thread": False}
+
 engine = create_engine(
     settings.SQLALCHEMY_DATABASE_URI, 
     pool_pre_ping=True,
-    connect_args={"check_same_thread": False} # Required for SQLite in FastAPI
+    connect_args=connect_args
 )
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
