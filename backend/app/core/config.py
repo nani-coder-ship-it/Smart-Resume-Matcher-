@@ -1,4 +1,5 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
+import os
 
 class Settings(BaseSettings):
     PROJECT_NAME: str = "Smart Resume Analyzer API"
@@ -8,19 +9,17 @@ class Settings(BaseSettings):
     SECRET_KEY: str = "your-super-secret-key-change-in-production"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 7 # 7 days
     
-    POSTGRES_SERVER: str = "localhost"
-    POSTGRES_USER: str = "postgres"
-    POSTGRES_PASSWORD: str = "postgres"
-    POSTGRES_DB: str = "resume_analyzer"
-    POSTGRES_PORT: str = "5432"
+    DATABASE_URL: str = os.getenv("DATABASE_URL", "sqlite:///./app.db")
 
     @property
     def SQLALCHEMY_DATABASE_URI(self) -> str:
-        # Switching to SQLite for local development since Docker is unavailable
-        return "sqlite:///./app.db"
+        # Use DATABASE_URL from environment (Render), or SQLite as fallback
+        return self.DATABASE_URL
     
     @property
     def ASYNC_SQLALCHEMY_DATABASE_URI(self) -> str:
+        if self.DATABASE_URL.startswith("postgresql"):
+            return self.DATABASE_URL.replace("postgresql://", "postgresql+asyncpg://")
         return "sqlite+aiosqlite:///./app.db"
 
     model_config = SettingsConfigDict(env_file=".env", case_sensitive=True)
